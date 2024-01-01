@@ -1,9 +1,20 @@
-const endpoint = '/notes'
+const { ObjectId } = require("mongodb");
 
-module.exports = async function(app, db){
+const endpoint = '/notes'
+const collection = 'notes'
+
+module.exports = function(app, db){
   app.get(endpoint, async (req, res) => {
-    const cursor = db.collection('notes')
-      .find()
+    const {id, title} = req.query;
+    var query = {}
+    if(id){
+        query._id = new ObjectId(id);
+    }
+    if(title){
+      query.title = title;
+    }
+    const cursor = db.collection(collection)
+      .find(query);
     const notes = [];
     for await (const doc of cursor) {
       notes.push(doc);
@@ -11,10 +22,9 @@ module.exports = async function(app, db){
     res.status(200).send({data: notes})
   })
 
-
   app.post(endpoint, async (req, res) => {
     const note = { text: req.body.body, title: req.body.title }
-    db.collection('notes').insertOne(note)
+    db.collection(collection).insertOne(note)
       .then((result) => {
         console.log(result);
         res.status(200).send("ok");
