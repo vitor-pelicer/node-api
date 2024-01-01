@@ -19,7 +19,7 @@ module.exports = function(app, db){
     for await (const doc of cursor) {
       notes.push(doc);
     }
-    res.status(200).send({data: notes})
+    res.status(200).send(notes)
   })
 
   app.post(endpoint, async (req, res) => {
@@ -33,5 +33,26 @@ module.exports = function(app, db){
         console.log(err);
         res.status(200).send("erro");
       });
+  })
+
+  app.delete(endpoint, async (req, res) => {
+    const {id, title} = req.query;
+    var query = {}
+    if(id){
+        query._id = new ObjectId(id);
+    }
+    if(title){
+      query.title = title;
+    }
+    db.collection(collection)
+      .deleteOne(query)
+        .then((result) => {
+          console.log(result);
+          res.status(200).send("ok");
+        })
+        .catch((err)=>{
+          console.log(err);
+          res.status(400).send("erro");
+        });
   })
 }
