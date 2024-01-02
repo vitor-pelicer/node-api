@@ -1,6 +1,6 @@
 # Node API with Express and MongoDB
 
-This is a Node.js API project using Express to create, retrieve, and store notes in a MongoDB database.
+This is a Node.js API project using Express to create, retrieve, update, and delete notes in a MongoDB database.
 
 ## Prerequisites
 
@@ -53,3 +53,14 @@ Returns all notes stored in the database.
 ### POST /notes
 
 Adds a new note to the database. Make sure to include the `body` and `title` parameters in the request body.
+
+### PATCH /notes/id={id}&title={title}
+
+Updates a specific note identified by its ID. Include the `body` or `title` parameter in the request body to modify the corresponding fields.
+
+### DELETE /notes/id={id}&title={title}
+
+Deletes a specific note identified by its ID or title.
+
+
+This is a simple but functional project to help you get started with creating a Node.js API with Express and MongoDB for managing notes. Feel free to expand and customize as needed to meet the specific requirements of your application.
