@@ -8,7 +8,14 @@ module.exports = function(app, db){
     const {id, title} = req.query;
     var query = {}
     if(id){
+      try{
         query._id = new ObjectId(id);
+      }
+      catch(err){
+        res.status(400).send("input must be a 24 character hex string, 12 byte Uint8Array, or an integer");
+        console.log(err);
+        return
+      }
     }
     if(title){
       query.title = title;
@@ -19,11 +26,17 @@ module.exports = function(app, db){
     for await (const doc of cursor) {
       notes.push(doc);
     }
-    res.status(200).send(notes)
+    if((id || title) && !notes[0]) res.status(400).send("Note not found");
+    else res.status(200).send(notes);
   })
 
   app.post(endpoint, async (req, res) => {
-    const note = { text: req.body.body, title: req.body.title }
+    if(!req.body.body || !req.body.title){
+      res.status(400).send("Body or title are missing");
+      return;
+    }
+    const note = { text: req.body.body, title: req.body.title };
+    
     db.collection(collectionName).insertOne(note)
       .then((result) => {
         console.log(result);
@@ -31,15 +44,26 @@ module.exports = function(app, db){
       })
       .catch((err)=>{
         console.log(err);
-        res.status(200).send("erro");
+        res.status(200).send("error");
       });
   })
 
   app.delete(endpoint, async (req, res) => {
     const {id, title} = req.query;
-    var query = {}
+    if(!id && !title){
+      res.status(400).send("Id or title are missing");
+      return;
+    }
+    var query = {};
     if(id){
+      try{
         query._id = new ObjectId(id);
+      }
+      catch(err){
+        res.status(400).send("input must be a 24 character hex string, 12 byte Uint8Array, or an integer");
+        console.log(err);
+        return
+      }
     }
     if(title){
       query.title = title;
@@ -48,17 +72,19 @@ module.exports = function(app, db){
       .deleteOne(query)
         .then((result) => {
           console.log(result);
-          res.status(200).send("ok");
+          if(result.deletedCount>0) res.status(200).send("ok");
+          else res.status(400).send("Note not found");
         })
         .catch((err)=>{
           console.log(err);
-          res.status(400).send("erro");
+          res.status(400).send("error");
         });
   })
 
   app.patch(endpoint, async (req, res) => {
     if(!req.body.body && !req.body.title){
-      res.status(400).send("Body and title is missing");
+      res.status(400).send("Body and title are missing");
+      return;
     }
     const note = { text: req.body.body, title: req.body.title }
     const {id, title} = req.query;
@@ -76,9 +102,9 @@ module.exports = function(app, db){
       notes.push(doc);
     }
     if(notes[0]){
-      const document = notes[0]
+      const document = notes[0];
       if (note.text) document.text = note.text;
-      if (note.title) document.title = note.title
+      if (note.title) document.title = note.title;
       console.log(notes[0]);
       collection.replaceOne(query, document)
         .then((result) => {
@@ -87,8 +113,8 @@ module.exports = function(app, db){
         })
         .catch((err)=>{
           console.log(err);
-          res.status(400).send("erro");
+          res.status(400).send("error");
         });
-    } else res.status(400).send("Não encontrado");
+    } else res.status(400).send("Note not found");
   })
 }
